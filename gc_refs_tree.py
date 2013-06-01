@@ -6,6 +6,13 @@ import inspect
 
 
 def get_referrers_tree(obj, max_depth):
+    """ Returns a tree of obj referrers. Any object is included only once, all duplicates are replaced by ids
+
+        Tree format:
+        [ [referrer1, [sub_referrer1_1, sub_referrer1_2, ...]], [referrer2, [sub_referrer2_1, sub_referrer2_2, ...]], ...]
+        where referrer1 and referrer2 are direct referrers to obj, and sub_referrs are referrers on them, respectively.
+        sub_referrers have the same tree format.
+    """
     non_local = {"current_depth": 0}  # emulate nonlocal statment for Python2
     already_seen = []
     exclude = [id(already_seen)]  # for objects created during the work of this function
@@ -49,17 +56,18 @@ def get_referrers_tree(obj, max_depth):
 
 
 def print_referrers(obj, max_depth, print_contents=True, shift_str="\t"):
+    """ Prints obj referrers tree. """
     referrers = get_referrers_tree(obj, max_depth)
     non_local = {"shift": 0}  # emulate nonlocal statment for Python2
 
     def print_hierarchy(referrers):
-        curent_shift = non_local["shift"] * shift_str
+        current_shift = non_local["shift"] * shift_str
         non_local["shift"] += 1
         for ref, sub_referrers in referrers:
             if isinstance(ref, int):  # it means we've got an id of already seen object
-                print("{0}{1} ...".format(curent_shift, ref))
+                print("{0}{1} ...".format(current_shift, ref))
             else:
-                print("{0}{1} {2}{3}".format(curent_shift, id(ref), type(ref), ref if print_contents else ""))
+                print("{0}{1} {2}{3}".format(current_shift, id(ref), type(ref), ref if print_contents else ""))
 
             print_hierarchy(sub_referrers)
         non_local["shift"] -= 1
